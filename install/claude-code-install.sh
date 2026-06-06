@@ -22,6 +22,13 @@ export DEBIAN_FRONTEND=noninteractive
 # Keep unattended apt fully non-interactive (needrestart ships on Debian 12/13).
 export NEEDRESTART_MODE=a
 export NEEDRESTART_SUSPEND=1
+# Run the install under the always-present C.UTF-8 so apt/perl/locale don't warn
+# before en_US.UTF-8 is generated (LANG may be inherited from the host via pct exec).
+# The persistent default is switched to en_US.UTF-8 later via update-locale.
+export LANG=C.UTF-8 LC_ALL=C.UTF-8
+# Our output is streamed through `pct exec` (which passes a TTY), so disable the
+# spinner here: plain status lines stream cleanly instead of colliding with apt.
+export NO_SPINNER=1
 
 # ----------------------------------------------------------------------------
 # Base system: locale, timezone, update

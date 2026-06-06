@@ -44,7 +44,10 @@ _stop_spinner() {
 msg_info() {
   local msg="$1"
   _stop_spinner
-  if [[ -t 2 ]]; then
+  # Spinner only on an interactive terminal AND when not explicitly disabled.
+  # Set NO_SPINNER=1 when output is streamed (e.g. in-container via `pct exec`),
+  # where sub-command output collides with a redrawing spinner.
+  if [[ -t 2 && -z "${NO_SPINNER:-}" ]]; then
     local frames='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
     (
       while true; do
