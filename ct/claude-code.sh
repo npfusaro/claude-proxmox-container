@@ -204,6 +204,12 @@ run pct create "$CTID" "$TEMPLATE_REF" \
   --description "Claude Code remote dev container - see github.com/npfusaro/claude-proxmox-container"
 msg_ok "Container created"
 
+# Console mode = shell: the Proxmox UI "Console" invokes a shell directly instead
+# of attaching to a tty getty. This avoids the systemd-getty credential setup that
+# fails in unprivileged LXCs (agetty exits 243/CREDENTIALS) and leaves the console
+# as a dead "flashing box". Guaranteed access from the Proxmox UI, no login needed.
+run pct set "$CTID" -cmode shell
+
 msg_info "Starting container"
 run pct start "$CTID"
 msg_ok "Container started"

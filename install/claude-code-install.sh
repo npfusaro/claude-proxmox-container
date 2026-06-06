@@ -111,31 +111,9 @@ if [[ "$HAS_PW" != "1" ]]; then
 fi
 systemctl enable --now ssh >/dev/null 2>&1 || systemctl enable --now sshd >/dev/null 2>&1 || true
 msg_ok "SSH enabled"
-
-# ----------------------------------------------------------------------------
-# Root auto-login on the container console (Proxmox UI "Console" / `pct console`).
-# Without this a key-only container has NO way to log in at the console prompt.
-# The console already requires Proxmox host access (root-equivalent), so this
-# matches community-scripts behavior and is the standard convenience tradeoff.
-# ----------------------------------------------------------------------------
-msg_info "Enabling root console auto-login"
-mkdir -p /etc/systemd/system/console-getty.service.d
-# Debian 13's console-getty imports systemd credentials (ImportCredential=agetty.*
-# / login.*). That credential setup FAILS in an unprivileged LXC (agetty exits
-# 243/CREDENTIALS), so the service hits its start limit and the Proxmox console is
-# left with no usable login. Clear those imports, then enable root auto-login.
-cat >/etc/systemd/system/console-getty.service.d/override.conf <<'EOF'
-[Service]
-ImportCredential=
-LoadCredential=
-SetCredential=
-ExecStart=
-ExecStart=-/sbin/agetty --autologin root --noclear --keep-baud console 115200,38400,9600 $TERM
-EOF
-systemctl daemon-reload >/dev/null 2>&1 || true
-systemctl reset-failed console-getty >/dev/null 2>&1 || true
-systemctl restart console-getty >/dev/null 2>&1 || true
-msg_ok "Console auto-login enabled"
+# Note: Proxmox UI Console access is handled host-side via `cmode=shell` (set in
+# ct/claude-code.sh), which avoids the systemd-getty credential failures that break
+# the console in unprivileged LXCs. No in-container getty configuration needed.
 
 # ----------------------------------------------------------------------------
 # Claude Code (native installer - self-contained binary, auto-updating)

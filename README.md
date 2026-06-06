@@ -63,9 +63,9 @@ with your Claude Pro/Max account, and if it shows a code, paste it back at the
 
 ## Can't log in?
 
-The container auto-logs in **root** on the Proxmox **Console** (web UI → CT → Console), so you
-always have a way in from the Proxmox UI. From the **node shell** you can also always enter the
-container with no credentials:
+The container is set to **`cmode=shell`**, so the Proxmox **Console** (web UI → CT → Console)
+drops straight into a root shell — you always have a way in from the Proxmox UI, no login or
+getty involved. From the **node shell** you can also enter the container with no credentials:
 
 ```bash
 pct enter <CTID>
