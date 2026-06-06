@@ -1,0 +1,4 @@
+# local scratch
+*.log
+*.tmp
+.DS_Store
