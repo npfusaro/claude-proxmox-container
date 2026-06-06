@@ -106,6 +106,23 @@ systemctl enable --now ssh >/dev/null 2>&1 || systemctl enable --now sshd >/dev/
 msg_ok "SSH enabled"
 
 # ----------------------------------------------------------------------------
+# Root auto-login on the container console (Proxmox UI "Console" / `pct console`).
+# Without this a key-only container has NO way to log in at the console prompt.
+# The console already requires Proxmox host access (root-equivalent), so this
+# matches community-scripts behavior and is the standard convenience tradeoff.
+# ----------------------------------------------------------------------------
+msg_info "Enabling root console auto-login"
+mkdir -p /etc/systemd/system/console-getty.service.d
+cat >/etc/systemd/system/console-getty.service.d/autologin.conf <<'EOF'
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin root --noclear --keep-baud console 115200,38400,9600 $TERM
+EOF
+systemctl daemon-reload >/dev/null 2>&1 || true
+systemctl restart console-getty >/dev/null 2>&1 || true
+msg_ok "Console auto-login enabled"
+
+# ----------------------------------------------------------------------------
 # Claude Code (native installer - self-contained binary, auto-updating)
 # Installed as the dev user so credentials live under /home/$DEV_USER/.claude.
 # ----------------------------------------------------------------------------

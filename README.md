@@ -61,6 +61,26 @@ with your Claude Pro/Max account, and if it shows a code, paste it back at the
 > precedence over the subscription login and **disable Remote Control** (which requires a
 > full-scope claude.ai login).
 
+## Can't log in?
+
+The container auto-logs in **root** on the Proxmox **Console** (web UI → CT → Console), so you
+always have a way in from the Proxmox UI. From the **node shell** you can also always enter the
+container with no credentials:
+
+```bash
+pct enter <CTID>
+```
+
+If SSH is refused, the key on the box doesn't match your client key. Fix it from inside the
+container: overwrite `/home/dev/.ssh/authorized_keys` with your public key (then
+`chown dev:dev`), or set a password and enable password auth:
+
+```bash
+passwd dev
+sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+systemctl restart ssh
+```
+
 ## Three ways to use it
 
 **1. SSH + tmux** — persistent terminal session:
