@@ -120,12 +120,20 @@ msg_ok "SSH enabled"
 # ----------------------------------------------------------------------------
 msg_info "Enabling root console auto-login"
 mkdir -p /etc/systemd/system/console-getty.service.d
-cat >/etc/systemd/system/console-getty.service.d/autologin.conf <<'EOF'
+# Debian 13's console-getty imports systemd credentials (ImportCredential=agetty.*
+# / login.*). That credential setup FAILS in an unprivileged LXC (agetty exits
+# 243/CREDENTIALS), so the service hits its start limit and the Proxmox console is
+# left with no usable login. Clear those imports, then enable root auto-login.
+cat >/etc/systemd/system/console-getty.service.d/override.conf <<'EOF'
 [Service]
+ImportCredential=
+LoadCredential=
+SetCredential=
 ExecStart=
 ExecStart=-/sbin/agetty --autologin root --noclear --keep-baud console 115200,38400,9600 $TERM
 EOF
 systemctl daemon-reload >/dev/null 2>&1 || true
+systemctl reset-failed console-getty >/dev/null 2>&1 || true
 systemctl restart console-getty >/dev/null 2>&1 || true
 msg_ok "Console auto-login enabled"
 
