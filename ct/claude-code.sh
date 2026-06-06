@@ -179,7 +179,9 @@ fi
 [[ -n "$TEMPLATE" ]] || { msg_error "Could not find a Debian standard template via 'pveam available'."; exit 1; }
 
 if ! pveam list "$TMPL_STORAGE" 2>/dev/null | grep -q "$TEMPLATE"; then
-  msg_info "Downloading template $TEMPLATE"
+  # No spinner here: pveam prints its own download progress bar, and a
+  # concurrent spinner would clobber it (both redraw with carriage returns).
+  printf "%s Downloading template %s ...\n" "$INFO" "$TEMPLATE" >&2
   run pveam download "$TMPL_STORAGE" "$TEMPLATE"
   msg_ok "Template downloaded"
 fi
@@ -241,7 +243,10 @@ run pct push "$CTID" "$WORK/bootstrap.env" /opt/claude-setup/bootstrap.env
 [[ -n "$PW_FILE" ]] && { run pct push "$CTID" "$PW_FILE" /opt/claude-setup/bootstrap_pw; run pct exec "$CTID" -- chmod 600 /opt/claude-setup/bootstrap_pw; }
 msg_ok "Payload uploaded"
 
-msg_info "Provisioning container (this takes a few minutes)"
+# No spinner here: the in-container installer streams its own step-by-step
+# progress back through `pct exec`. A concurrent host spinner redraws the same
+# line and clobbers that output (the flicker). Let the child's progress stream.
+printf "%s Provisioning container - live progress follows (a few minutes):\n" "$INFO" >&2
 run pct exec "$CTID" -- bash /opt/claude-setup/install.sh
 msg_ok "Provisioning complete"
 
